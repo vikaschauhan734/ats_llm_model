@@ -12,6 +12,7 @@ To run the ATS Tester LLM project locally, follow these steps:
 
 1. Clone this repository to your local machine.
 2. Ensure you have Python installed on your system.
+4. Generate Gemini free API key and save it in `.env` file
 3. Install the required dependencies by running:
     ```bash
     pip install -r requirements.txt
