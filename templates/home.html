@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Checker</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">ATS Resume Checker</h1>
+        <form action="{{ url_for('predict')}}" method="post" enctype="multipart/form-data" class="mb-4">
+            <div class="form-group">
+                <label for="job_description">Job Description:</label>
+                <textarea class="form-control" id="job_description" name="job_description" rows="5" cols="50"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="resume_pdf">Resume PDF:</label>
+                <input type="file" class="form-control-file" id="resume_pdf" name="resume_pdf" accept=".pdf">
+            </div>
+            <button type="submit" class="btn btn-primary">Predict</button>
+
+        </form>
+        <div class="mt-4">
+            {% if result1 %}
+                <h4>Percentage Match:</h4>
+                <p>{{ result1 }}%</p>
+            {% endif %}
+            {% if result2 %}
+                <h4>Missing Keywords:</h4>
+                <ul>
+                    {% for keyword in result2 %}
+                    <li>{{ keyword.strip() }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

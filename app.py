@@ -2,11 +2,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import re
 import base64
-import streamlit as st
+from flask import Flask, request, render_template
 import os
 import io
-from PIL import Image
 import pdf2image
 import google.generativeai as genai
 
@@ -39,86 +39,35 @@ def input_pdf_setup(uploaded_file):
     else:
         raise FileNotFoundError("No file uploaded")
     
-## Streamlit App
-st.set_page_config(page_title="ATS Resume Expert")
-st.header("ATS Tracking System")
-input_text = st.text_area("Job Description: ",key="input")
-uploaded_file=st.file_uploader("Upload your resume(PDF)...",type=["pdf"])
-
-if uploaded_file is not None:
-    st.write("PDF Uploaded Sucessfully")
-
-
-submit1 = st.button("Tell Me About the Resume")
-
-submit2 = st.button("How Can I Improvise my Skills")
-
-submit3 = st.button("What are the keywords that are Missing")
-
-submit4 = st.button("Precentage match")
-
-input_prompt1 = """
- You are an experienced HR with Tech Experience in the field of Data Science, Big Data Engineering, Data Analyst, your task is to review the provided resume against the job description for these profiles. 
-  Please share your professional evaluation on whether the candidate's profile aligns with the role. 
- Highlight the strengths and weaknesses of the applicant in relation to the specified job requirements.
-"""
-
-input_prompt2 = """
-You are an Technical Human Resource Manager with expertise in Data Science, Big Data Engineering, Data Analyst, 
-your role is to scrutinize the resume in light of the job description provided. 
-Share your insights on the candidate's suitability for the role from an HR perspective. 
-Additionally, offer advice on enhancing the candidate's skills and identify areas where improvement is needed.
-"""
-
-input_prompt3 = """
-You are an skilled ATS (Applicant Tracking System) scanner with a deep understanding of any one job role from Data Science, Big Data Engineering, Data Analyst and ATS functionality, 
-your task is to evaluate the resume against the provided job description. As a Human Resource manager,
- assess the compatibility of the resume with the role. Give me what are the keywords that are missing
- Also, provide recommendations for enhancing the candidate's skills and identify which areas require further development.
-"""
-
-input_prompt4 = """
-You are an skilled ATS (Applicant Tracking System) scanner with a deep understanding of any one job role Data Science, Big Data Engineering, Data Analyst and deep ATS functionality, 
+input_prompt1 = '''
+You are an skilled ATS (Applicant Tracking System) scanner with a deep understanding of job role Data Science, Big Data Engineering, Data Analyst, 
 your task is to evaluate the resume against the provided job description. give me the percentage of match if the resume matches
-the job description. First the output should come as percentage and then keywords missing and last final thoughts.
-"""
+the job description. Give me percentage only.'''
 
-if submit1:
-    if uploaded_file is not None:
-        pdf_content = input_pdf_setup(uploaded_file)
-        response = get_gemini_response(input_prompt1, pdf_content, input_text)
-        st.subheader("The Response is")
-        st.write(response)
+input_prompt2 = '''
+You are an skilled ATS (Applicant Tracking System) scanner with a deep understanding of job role from Data Science, Big Data Engineering, Data Analyst, 
+your task is to evaluate the resume against the provided job description. As a Human Resource manager,
+ assess the compatibility of the resume with the role. Give me what are the keywords that are missing in the resume in bullet points.'''
+
+app = Flask(__name__)
+
+@app.route('/',methods=['GET','POST'])
+def predict():
+    if request.method=='GET':
+        return render_template('home.html')
     else:
-        st.write("Please upload the resume")
+        job_description = request.form['job_description']
+        uploaded_file = request.files['resume_pdf']
 
-elif submit2:
-    if uploaded_file is not None:
         pdf_content = input_pdf_setup(uploaded_file)
-        response = get_gemini_response(input_prompt2, pdf_content, input_text)
-        st.subheader("The Response is")
-        st.write(response)
-    else:
-        st.write("Please upload the resume")
 
-elif submit3:
-    if uploaded_file is not None:
-        pdf_content = input_pdf_setup(uploaded_file)
-        response = get_gemini_response(input_prompt3, pdf_content, input_text)
-        st.subheader("The Response is")
-        st.write(response)
-    else:
-        st.write("Please upload the resume")
+        response1 = get_gemini_response(input_prompt1, pdf_content, job_description)
+        response1 = re.findall(r'\d+', response1)
+        
+        response2 = get_gemini_response(input_prompt2, pdf_content, job_description)
+        response2 = response2.split('\n')
 
-elif submit4:
-    if uploaded_file is not None:
-        pdf_content = input_pdf_setup(uploaded_file)
-        response = get_gemini_response(input_prompt4, pdf_content, input_text)
-        st.subheader("The Response is")
-        st.write(response)
-    else:
-        st.write("Please upload the resume")
+        return render_template('home.html', result1=response1[0],result2=response2)
 
-
-st.markdown("---")
-st.caption("Resume Expert - Making Job Applications Easier")
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=8080)
