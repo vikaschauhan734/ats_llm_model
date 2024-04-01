@@ -29,11 +29,9 @@
             {% endif %}
             {% if result2 %}
                 <h4>Missing Keywords:</h4>
-                <ul>
                     {% for keyword in result2 %}
-                    <li>{{ keyword.strip() }}</li>
+                    {{ keyword.strip() }}
                     {% endfor %}
-                </ul>
             {% endif %}
         </div>
     </div>
